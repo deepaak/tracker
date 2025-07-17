@@ -12,49 +12,61 @@ body {
   -moz-osx-font-smoothing: grayscale;
   background: transparent;
   user-select: none;
+  color: white;
 }
 
 .app {
   width: 350px;
   height: 500px;
-  /* Temporary high contrast for debugging */
-  background: rgba(255, 255, 255, 0.98) !important;
+  /* Lighter gray theme for better visibility on dark mode */
+  background: rgba(55, 65, 81, 0.95) !important; /* Lighter dark gray */
   backdrop-filter: blur(20px);
   border-radius: 12px;
-  border: 2px solid #000 !important; /* Visible border for debugging */
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(156, 163, 175, 0.4) !important; /* More visible gray border */
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
   overflow: hidden;
   display: flex;
   flex-direction: column;
+  color: white;
+  -webkit-app-region: drag; /* Make entire app draggable */
 }
 
 /* Header Styles */
 .header {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #4b5563 0%, #374151 100%); /* Lighter gray gradient */
   color: white;
   padding: 8px;
   display: flex;
   flex-direction: column;
   gap: 8px;
+  border-bottom: 1px solid rgba(156, 163, 175, 0.4);
+  -webkit-app-region: drag; /* Header is draggable */
 }
 
 .header-drag-area {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  -webkit-app-region: drag;
+  -webkit-app-region: drag; /* Drag area */
+  cursor: grab; /* Show grab cursor */
+}
+
+.header-drag-area:active {
+  cursor: grabbing; /* Show grabbing cursor when dragging */
 }
 
 .app-title {
   font-size: 14px;
   font-weight: 600;
   margin-left: 8px;
+  color: white;
+  -webkit-app-region: drag; /* Title is draggable */
 }
 
 .header-controls {
   display: flex;
   gap: 4px;
-  -webkit-app-region: no-drag;
+  -webkit-app-region: no-drag; /* Buttons are not draggable */
 }
 
 .control-btn {
@@ -62,18 +74,37 @@ body {
   height: 20px;
   border: none;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.2);
-  color: white;
-  font-size: 10px;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: background 0.2s;
+  font-size: 10px;
+  transition: all 0.2s ease;
+  color: white;
 }
 
-.control-btn:hover {
-  background: rgba(255, 255, 255, 0.3);
+.collapse-btn {
+  background: rgba(59, 130, 246, 0.8); /* Blue */
+}
+
+.collapse-btn:hover {
+  background: rgba(59, 130, 246, 1);
+}
+
+.minimize-btn {
+  background: rgba(156, 163, 175, 0.8); /* Gray */
+}
+
+.minimize-btn:hover {
+  background: rgba(156, 163, 175, 1);
+}
+
+.close-btn {
+  background: rgba(239, 68, 68, 0.8); /* Red */
+}
+
+.close-btn:hover {
+  background: rgba(239, 68, 68, 1);
 }
 
 .nav-tabs {
@@ -107,6 +138,7 @@ body {
   flex: 1;
   padding: 16px;
   overflow-y: auto;
+  -webkit-app-region: no-drag; /* Content area is not draggable */
 }
 
 /* Timer Widget Styles */
@@ -125,16 +157,16 @@ body {
 
 .session-time,
 .total-time {
-  background: rgba(255, 255, 255, 0.8);
+  background: rgba(75, 85, 99, 0.8); /* Lighter gray for better visibility */
   border-radius: 12px;
   padding: 16px;
-  border: 1px solid rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(156, 163, 175, 0.4);
 }
 
 .session-time label,
 .total-time label {
   font-size: 12px;
-  color: #666;
+  color: #d1d5db; /* Light gray */
   font-weight: 500;
   margin-bottom: 8px;
   display: block;
@@ -144,14 +176,15 @@ body {
   font-size: 28px;
   font-weight: 700;
   font-family: 'Courier New', monospace;
+  color: white;
 }
 
 .time-value.session {
-  color: #4CAF50;
+  color: #3b82f6; /* Blue */
 }
 
 .time-value.total {
-  color: #2196F3;
+  color: #60a5fa; /* Light blue */
 }
 
 .timer-controls {
@@ -167,26 +200,37 @@ body {
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s;
+  color: white;
 }
 
 .start-btn {
-  background: linear-gradient(135deg, #4CAF50, #45a049);
+  background: linear-gradient(135deg, #3b82f6, #2563eb); /* Blue gradient */
   color: white;
 }
 
 .start-btn:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
 }
 
 .stop-btn {
-  background: linear-gradient(135deg, #f44336, #d32f2f);
+  background: linear-gradient(135deg, #ef4444, #dc2626); /* Red gradient */
   color: white;
 }
 
 .stop-btn:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(244, 67, 54, 0.3);
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4);
+}
+
+.test-btn {
+  background: linear-gradient(135deg, #6b7280, #4b5563); /* Gray gradient */
+  color: white;
+}
+
+.test-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(107, 114, 128, 0.4);
 }
 
 .status-indicator {
@@ -195,7 +239,7 @@ body {
   justify-content: center;
   gap: 8px;
   font-size: 14px;
-  color: #666;
+  color: #d1d5db; /* Light gray for dark theme */
 }
 
 .status-dot {
@@ -205,12 +249,12 @@ body {
 }
 
 .status-dot.active {
-  background: #4CAF50;
+  background: #3b82f6; /* Blue */
   animation: pulse 2s infinite;
 }
 
 .status-dot.inactive {
-  background: #ccc;
+  background: #6b7280; /* Gray */
 }
 
 @keyframes pulse {
@@ -403,12 +447,12 @@ body {
 }
 
 .settings-header h3 {
-  color: #333;
+  color: white;
   margin-bottom: 4px;
 }
 
 .settings-header p {
-  color: #666;
+  color: #d1d5db;
   font-size: 12px;
 }
 
@@ -419,14 +463,14 @@ body {
 }
 
 .settings-section {
-  background: rgba(255, 255, 255, 0.8);
+  background: rgba(75, 85, 99, 0.8); /* Lighter gray for better visibility */
   border-radius: 8px;
   padding: 16px;
-  border: 1px solid rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(156, 163, 175, 0.4);
 }
 
 .settings-section h4 {
-  color: #333;
+  color: white;
   margin-bottom: 12px;
   font-size: 14px;
 }
@@ -444,24 +488,31 @@ body {
   margin-bottom: 4px;
   font-size: 12px;
   font-weight: 500;
-  color: #333;
+  color: #d1d5db;
 }
 
 .form-group input {
   width: 100%;
   padding: 8px;
-  border: 1px solid #ddd;
+  border: 1px solid #4b5563;
   border-radius: 4px;
   font-size: 13px;
+  background: rgba(17, 24, 39, 0.8);
+  color: white;
+}
+
+.form-group input::placeholder {
+  color: #9ca3af;
 }
 
 .form-group input:focus {
   outline: none;
-  border-color: #667eea;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
 }
 
 .form-group small {
-  color: #666;
+  color: #9ca3af;
   font-size: 11px;
   margin-top: 2px;
   display: block;
@@ -474,27 +525,42 @@ body {
 }
 
 .save-btn,
-.upload-btn {
+.upload-btn,
+.browse-button {
   padding: 8px 16px;
   border: none;
   border-radius: 6px;
   font-size: 12px;
   cursor: pointer;
-  transition: background 0.2s;
+  transition: all 0.2s ease;
+  color: white;
 }
 
 .save-btn {
-  background: #4CAF50;
-  color: white;
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
 }
 
 .save-btn:hover:not(:disabled) {
-  background: #45a049;
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
 }
 
 .upload-btn {
-  background: #2196F3;
-  color: white;
+  background: linear-gradient(135deg, #6b7280, #4b5563);
+}
+
+.upload-btn:hover:not(:disabled) {
+  background: linear-gradient(135deg, #4b5563, #374151);
+  box-shadow: 0 2px 8px rgba(107, 114, 128, 0.3);
+}
+
+.browse-button {
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
+}
+
+.browse-button:hover {
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
 }
 
 .upload-btn:hover:not(:disabled) {
@@ -660,4 +726,213 @@ body {
 
 ::-webkit-scrollbar-thumb:hover {
   background: rgba(0, 0, 0, 0.3);
+}
+
+/* Minimized Bar Styles */
+.app.minimized {
+  width: 300px; /* Responsive width */
+  min-width: 250px;
+  max-width: 400px;
+  height: 45px;
+  background: rgba(55, 65, 81, 0.95) !important; /* Lighter gray for visibility */
+  backdrop-filter: blur(20px);
+  border-radius: 25px;
+  border: 1px solid rgba(156, 163, 175, 0.4) !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+  -webkit-app-region: drag; /* Make entire bar draggable */
+}
+
+.app.expanded {
+  width: 350px;
+  height: 500px;
+  border-radius: 12px;
+  background: rgba(55, 65, 81, 0.95) !important;
+  -webkit-app-region: drag; /* Expanded view is draggable */
+}
+
+.minimized-bar {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  padding: 0 15px;
+  -webkit-app-region: drag; /* Bar content is draggable */
+  cursor: grab; /* Show grab cursor */
+}
+
+.minimized-bar:active {
+  cursor: grabbing; /* Show grabbing cursor when dragging */
+}
+
+.bar-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  -webkit-app-region: drag; /* Bar content is draggable */
+}
+
+.timer-status {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+  -webkit-app-region: drag; /* Timer status is draggable */
+}
+
+.timer-status .status-indicator {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  -webkit-app-region: drag; /* Status indicator is draggable */
+}
+
+.timer-status .status-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #ef4444; /* Red for stopped */
+}
+
+.timer-status .status-dot.active {
+  background: #3b82f6; /* Blue for active */
+  animation: pulse 2s infinite;
+}
+
+.timer-status .status-text {
+  font-size: 13px;
+  font-weight: 500;
+  color: white;
+  font-family: 'Courier New', monospace;
+  -webkit-app-region: drag; /* Status text is draggable */
+}
+
+.bar-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  -webkit-app-region: no-drag; /* Controls are not draggable */
+}
+
+.mini-button {
+  width: 28px;
+  height: 28px;
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  transition: all 0.2s ease;
+  color: white;
+}
+
+.mini-button.start-btn {
+  background: linear-gradient(135deg, #3b82f6, #2563eb); /* Blue */
+}
+
+.mini-button.start-btn:hover {
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  box-shadow: 0 4px 8px rgba(59, 130, 246, 0.3);
+  transform: translateY(-1px);
+}
+
+.mini-button.stop-btn {
+  background: linear-gradient(135deg, #ef4444, #dc2626); /* Red */
+}
+
+.mini-button.stop-btn:hover {
+  background: linear-gradient(135deg, #dc2626, #b91c1c);
+  box-shadow: 0 4px 8px rgba(239, 68, 68, 0.3);
+  transform: translateY(-1px);
+}
+
+.mini-button.expand-btn {
+  background: linear-gradient(135deg, #6b7280, #4b5563); /* Gray */
+}
+
+.mini-button.expand-btn:hover {
+  background: linear-gradient(135deg, #4b5563, #374151);
+  box-shadow: 0 4px 8px rgba(107, 114, 128, 0.3);
+  transform: translateY(-1px);
+}
+
+/* Path input group for screenshot settings */
+.path-input-group {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.path-input-group input {
+  flex: 1;
+}
+
+.browse-button {
+  padding: 8px 12px;
+  background: #4299e1;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 12px;
+  transition: all 0.2s ease;
+}
+
+.browse-button:hover {
+  background: #3182ce;
+}
+
+/* Model selection for AI */
+.model-selection {
+  margin-top: 10px;
+  padding: 10px;
+  background: rgba(0, 0, 0, 0.02);
+  border-radius: 6px;
+}
+
+.model-selection label {
+  font-size: 12px;
+  color: #666;
+  margin-bottom: 5px;
+  display: block;
+}
+
+.model-select {
+  width: 100%;
+  padding: 6px 8px;
+  border: 1px solid #e2e8f0;
+  border-radius: 4px;
+  font-size: 12px;
+}
+
+/* Collapse button in header */
+.collapse-btn {
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  color: white;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  transition: all 0.2s ease;
+  margin-right: 4px;
+}
+
+.collapse-btn:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
 }

@@ -1,5 +1,6 @@
 const { app, BrowserWindow, ipcMain, screen, dialog, Menu, Tray } = require('electron');
 const path = require('path');
+const os = require('os');
 // Check if we're in development mode
 const isDev = process.env.NODE_ENV === 'development' || process.env.ELECTRON_IS_DEV === 'true';
 const Store = require('electron-store');
@@ -130,18 +131,18 @@ function createWindow() {
     height: 500,
     x: width - 370,
     y: 20,
-    frame: true, // Enable frame for debugging
-    transparent: false, // Disable transparency for debugging
-    alwaysOnTop: false, // Changed to false for better compatibility
-    resizable: true,
-    minimizable: true,
+    frame: false, // Remove window frame to hide minimize/close buttons
+    transparent: true, // Enable transparency for glassmorphism
+    alwaysOnTop: true, // Keep on top for time tracking
+    resizable: false, // Make non-resizable for clean look
+    minimizable: false, // Remove minimize option
     show: false, // Don't show until ready
+    movable: true, // Allow dragging
     webPreferences: {
       nodeIntegration: true,
       contextIsolation: false,
       enableRemoteModule: true
     }
-    // Removed icon path that doesn't exist
   });
 
   // Show window when ready
@@ -197,9 +198,20 @@ function createTray() {
 // Screenshot functionality - Enhanced for active window capture
 async function takeScreenshot() {
   try {
+    const settings = store.get('settings', {});
     const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
     const filename = `screenshot-${timestamp}.png`;
-    const filepath = path.join(__dirname, '../screenshots', filename);
+    
+    // Use custom screenshot path if set, otherwise use default
+    let screenshotsDir;
+    if (settings.screenshotPath && fs.existsSync(settings.screenshotPath)) {
+      screenshotsDir = settings.screenshotPath;
+    } else {
+      // Default path: Documents/TimeTracker/Screenshots
+      screenshotsDir = path.join(os.homedir(), 'Documents', 'TimeTracker', 'Screenshots');
+    }
+    
+    const filepath = path.join(screenshotsDir, filename);
     
     let activeWindow = null;
     let imgData = null;
@@ -276,7 +288,6 @@ async function takeScreenshot() {
     }
     
     // Ensure screenshots directory exists
-    const screenshotsDir = path.join(__dirname, '../screenshots');
     if (!fs.existsSync(screenshotsDir)) {
       fs.mkdirSync(screenshotsDir, { recursive: true });
     }
@@ -482,13 +493,28 @@ ipcMain.handle('get-settings', () => {
     firstName: '',
     lastName: '',
     email: '',
-    serverUrl: 'https://api.example.com'
+    serverUrl: 'https://api.example.com',
+    screenshotPath: ''
   });
 });
 
 ipcMain.handle('save-settings', (event, settings) => {
   store.set('settings', settings);
   return true;
+});
+
+// Screenshot path selector
+ipcMain.handle('select-screenshot-path', async () => {
+  const result = await dialog.showOpenDialog(mainWindow, {
+    properties: ['openDirectory'],
+    title: 'Select Screenshot Save Location'
+  });
+  
+  if (!result.canceled && result.filePaths.length > 0) {
+    return result.filePaths[0];
+  }
+  
+  return null;
 });
 
 ipcMain.handle('get-stats', () => {
@@ -504,7 +530,7 @@ ipcMain.handle('get-stats', () => {
   };
 });
 
-ipcMain.handle('search-ai', async (event, { query, provider }) => {
+ipcMain.handle('search-ai', async (event, { query, provider, model }) => {
   const settings = store.get('settings', {});
   
   try {
@@ -517,9 +543,9 @@ ipcMain.handle('search-ai', async (event, { query, provider }) => {
       // Make API call to OpenAI
       const axios = require('axios');
       response = await axios.post('https://api.openai.com/v1/chat/completions', {
-        model: 'gpt-3.5-turbo',
+        model: 'gpt-4o', // Use GPT-4o by default
         messages: [{ role: 'user', content: query }],
-        max_tokens: 150
+        max_tokens: 1000
       }, {
         headers: {
           'Authorization': `Bearer ${apiKey}`,
@@ -533,11 +559,14 @@ ipcMain.handle('search-ai', async (event, { query, provider }) => {
       const apiKey = settings.anthropicKey;
       if (!apiKey) throw new Error('Anthropic API key not configured');
       
+      // Use the provided model or default to Claude 3.5 Sonnet
+      const claudeModel = model || 'claude-3-5-sonnet-20241022';
+      
       // Make API call to Anthropic
       const axios = require('axios');
       response = await axios.post('https://api.anthropic.com/v1/messages', {
-        model: 'claude-3-sonnet-20240229',
-        max_tokens: 150,
+        model: claudeModel,
+        max_tokens: 1000,
         messages: [{ role: 'user', content: query }]
       }, {
         headers: {
@@ -548,11 +577,13 @@ ipcMain.handle('search-ai', async (event, { query, provider }) => {
       });
       
       return response.data.content[0].text;
+    } else {
+      throw new Error('Invalid AI provider specified');
     }
     
   } catch (error) {
     console.error('AI Search Error:', error);
-    throw new Error(`AI Search failed: ${error.message}`);
+    throw new Error(`AI Search failed: ${error.response?.data?.error?.message || error.message}`);
   }
 });
 

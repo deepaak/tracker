@@ -1,6 +1,6 @@
 import React from 'react';
 
-const Header = ({ currentView, onViewChange, onMinimize, onClose }) => {
+const Header = ({ currentView, onViewChange, onMinimize, onClose, onCollapse }) => {
   const navItems = [
     { id: 'timer', label: '⏱️', title: 'Timer' },
     { id: 'search', label: '🔍', title: 'AI Search' },
@@ -15,6 +15,13 @@ const Header = ({ currentView, onViewChange, onMinimize, onClose }) => {
       </div>
       
       <div className="header-controls">
+        <button 
+          className="control-btn collapse-btn"
+          onClick={onCollapse}
+          title="Collapse to bar"
+        >
+          ⬇️
+        </button>
         <button 
           className="control-btn minimize-btn"
           onClick={onMinimize}

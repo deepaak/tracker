@@ -21,12 +21,11 @@ try {
 }
 
 const App = () => {
-  console.log('App component mounting');
   const [currentView, setCurrentView] = useState('timer');
   const [isTracking, setIsTracking] = useState(false);
   const [sessionTime, setSessionTime] = useState(0);
   const [totalTime, setTotalTime] = useState(0);
-  const [isMinimized, setIsMinimized] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(false);
   const [stats, setStats] = useState({});
 
   useEffect(() => {
@@ -96,7 +95,10 @@ const App = () => {
 
   const minimizeWindow = async () => {
     await ipcRenderer.invoke('minimize-window');
-    setIsMinimized(true);
+  };
+
+  const toggleExpanded = () => {
+    setIsExpanded(!isExpanded);
   };
 
   const closeWindow = async () => {
@@ -110,6 +112,51 @@ const App = () => {
     const seconds = totalSeconds % 60;
     
     return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+  };
+
+  const renderMinimizedBar = () => {
+    return (
+      <div className="minimized-bar">
+        <div className="bar-content">
+          <div className="timer-status">
+            <div className={`status-indicator ${isTracking ? 'tracking' : 'stopped'}`}>
+              <div className={`status-dot ${isTracking ? 'active' : 'inactive'}`}></div>
+              <span className="status-text">
+                {isTracking ? formatTime(sessionTime) : 'Stopped'}
+              </span>
+            </div>
+          </div>
+          
+          <div className="bar-controls">
+            {!isTracking ? (
+              <button 
+                className="mini-button start-btn"
+                onClick={startTracking}
+                title="Start Tracking"
+              >
+                ▶️
+              </button>
+            ) : (
+              <button 
+                className="mini-button stop-btn"
+                onClick={stopTracking}
+                title="Stop Tracking"
+              >
+                ⏸️
+              </button>
+            )}
+            
+            <button 
+              className="mini-button expand-btn"
+              onClick={toggleExpanded}
+              title="Expand"
+            >
+              ⬆️
+            </button>
+          </div>
+        </div>
+      </div>
+    );
   };
 
   const renderCurrentView = () => {
@@ -146,20 +193,23 @@ const App = () => {
   };
 
   return (
-    <div className="app">
-      {console.log('App rendering with currentView:', currentView)}
-      <div style={{color: 'white', background: 'red', padding: '10px'}}>
-        DEBUG: App is rendering! Current view: {currentView}
-      </div>
-      <Header
-        currentView={currentView}
-        onViewChange={setCurrentView}
-        onMinimize={minimizeWindow}
-        onClose={closeWindow}
-      />
-      <div className="app-content">
-        {renderCurrentView()}
-      </div>
+    <div className={`app ${isExpanded ? 'expanded' : 'minimized'}`}>
+      {!isExpanded ? (
+        renderMinimizedBar()
+      ) : (
+        <>
+          <Header
+            currentView={currentView}
+            onViewChange={setCurrentView}
+            onMinimize={minimizeWindow}
+            onClose={closeWindow}
+            onCollapse={toggleExpanded}
+          />
+          <div className="app-content">
+            {renderCurrentView()}
+          </div>
+        </>
+      )}
     </div>
   );
 };

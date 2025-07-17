@@ -9,7 +9,8 @@ const Settings = () => {
     firstName: '',
     lastName: '',
     email: '',
-    serverUrl: 'https://api.example.com'
+    serverUrl: 'https://api.example.com',
+    screenshotPath: ''
   });
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -147,6 +148,39 @@ const Settings = () => {
               placeholder="https://api.example.com"
             />
             <small>URL for uploading tracking data</small>
+          </div>
+        </div>
+
+        <div className="settings-section">
+          <h4>📸 Screenshot Settings</h4>
+          
+          <div className="form-group">
+            <label>Screenshot Save Path</label>
+            <div className="path-input-group">
+              <input
+                type="text"
+                value={settings.screenshotPath}
+                onChange={(e) => handleInputChange('screenshotPath', e.target.value)}
+                placeholder="Leave empty for default location"
+              />
+              <button
+                type="button"
+                className="browse-button"
+                onClick={async () => {
+                  try {
+                    const path = await ipcRenderer.invoke('select-screenshot-path');
+                    if (path) {
+                      handleInputChange('screenshotPath', path);
+                    }
+                  } catch (error) {
+                    console.error('Error selecting path:', error);
+                  }
+                }}
+              >
+                📁 Browse
+              </button>
+            </div>
+            <small>Choose where screenshots will be saved. Default: Documents/TimeTracker/Screenshots</small>
           </div>
         </div>
 

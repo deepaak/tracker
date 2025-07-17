@@ -6,7 +6,8 @@ const AISearch = () => {
   const [query, setQuery] = useState('');
   const [response, setResponse] = useState('');
   const [loading, setLoading] = useState(false);
-  const [provider, setProvider] = useState('openai');
+  const [provider, setProvider] = useState('anthropic'); // Default to Claude
+  const [model, setModel] = useState('claude-3-5-sonnet-20241022'); // Claude 3.5 Sonnet (latest)
   const [error, setError] = useState('');
 
   const handleSearch = async (e) => {
@@ -24,7 +25,8 @@ const AISearch = () => {
     try {
       const result = await ipcRenderer.invoke('search-ai', {
         query: query.trim(),
-        provider
+        provider,
+        model: provider === 'anthropic' ? model : undefined
       });
       
       setResponse(result);
@@ -66,9 +68,25 @@ const AISearch = () => {
               checked={provider === 'anthropic'}
               onChange={(e) => setProvider(e.target.value)}
             />
-            Anthropic Claude
+            Anthropic Claude 3.5 Sonnet (Recommended)
           </label>
         </div>
+
+        {provider === 'anthropic' && (
+          <div className="model-selection">
+            <label>Model:</label>
+            <select 
+              value={model} 
+              onChange={(e) => setModel(e.target.value)}
+              className="model-select"
+            >
+              <option value="claude-3-5-sonnet-20241022">Claude 3.5 Sonnet (Latest)</option>
+              <option value="claude-3-5-haiku-20241022">Claude 3.5 Haiku (Fast)</option>
+              <option value="claude-3-opus-20240229">Claude 3 Opus (Most Capable)</option>
+              <option value="claude-4-0">Claude 4.0 (Newest)</option>
+            </select>
+          </div>
+        )}
 
         <div className="search-input-group">
           <textarea
