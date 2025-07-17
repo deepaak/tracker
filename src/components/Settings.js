@@ -10,7 +10,8 @@ const Settings = () => {
     lastName: '',
     email: '',
     serverUrl: 'https://api.example.com',
-    screenshotPath: ''
+    screenshotPath: '',
+    enableScreenshotAnalysis: true
   });
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -181,6 +182,18 @@ const Settings = () => {
               </button>
             </div>
             <small>Choose where screenshots will be saved. Default: Documents/TimeTracker/Screenshots</small>
+          </div>
+
+          <div className="form-group">
+            <label className="checkbox-label">
+              <input
+                type="checkbox"
+                checked={settings.enableScreenshotAnalysis}
+                onChange={(e) => handleInputChange('enableScreenshotAnalysis', e.target.checked)}
+              />
+              <span className="checkbox-text">🤖 Enable AI Screenshot Analysis</span>
+            </label>
+            <small>When enabled, AI search will analyze your recent screenshots to provide context-aware responses</small>
           </div>
         </div>
 

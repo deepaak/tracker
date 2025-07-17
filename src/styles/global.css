@@ -283,7 +283,7 @@ body {
 }
 
 .info-label {
-  color: #666;
+  color: #9ca3af; /* Light gray instead of dark gray */
 }
 
 .info-value {
@@ -299,12 +299,12 @@ body {
 }
 
 .search-header h3 {
-  color: #333;
+  color: #e5e7eb; /* Light gray instead of dark */
   margin-bottom: 4px;
 }
 
 .search-header p {
-  color: #666;
+  color: #9ca3af; /* Light gray instead of dark gray */
   font-size: 12px;
 }
 
@@ -325,7 +325,7 @@ body {
   align-items: center;
   gap: 4px;
   font-size: 12px;
-  color: #666;
+  color: #9ca3af; /* Light gray instead of dark gray */
   cursor: pointer;
 }
 
@@ -381,17 +381,18 @@ body {
 }
 
 .clear-btn {
-  background: #f5f5f5;
-  color: #666;
+  background: #374151; /* Dark background for dark theme */
+  color: #9ca3af; /* Light gray text */
+  border: 1px solid #4b5563;
 }
 
 .clear-btn:hover {
-  background: #e0e0e0;
+  background: #4b5563; /* Lighter dark on hover */
 }
 
 .search-error,
 .search-results {
-  background: rgba(255, 255, 255, 0.8);
+  background: rgba(55, 65, 81, 0.9); /* Dark background instead of white */
   border-radius: 8px;
   padding: 12px;
   border-left: 4px solid #f44336;
@@ -405,17 +406,18 @@ body {
 .search-results h4 {
   margin-bottom: 8px;
   font-size: 14px;
+  color: #e5e7eb; /* Light text */
 }
 
 .search-error p,
 .response-content {
-  color: #333;
+  color: #d1d5db; /* Light gray instead of dark */
   font-size: 13px;
   line-height: 1.4;
 }
 
 .search-error small {
-  color: #666;
+  color: #9ca3af; /* Light gray instead of dark gray */
   font-size: 11px;
 }
 
@@ -518,6 +520,24 @@ body {
   display: block;
 }
 
+.checkbox-label {
+  display: flex !important;
+  align-items: center;
+  gap: 8px;
+  font-weight: 400 !important;
+  cursor: pointer;
+}
+
+.checkbox-label input[type="checkbox"] {
+  width: auto !important;
+  margin: 0 !important;
+  accent-color: #3b82f6;
+}
+
+.checkbox-text {
+  flex: 1;
+}
+
 .settings-actions {
   display: flex;
   align-items: center;
@@ -595,12 +615,12 @@ body {
 }
 
 .stats-header h3 {
-  color: #333;
+  color: #e5e7eb; /* Light gray instead of dark */
   margin-bottom: 4px;
 }
 
 .stats-header p {
-  color: #666;
+  color: #9ca3af; /* Light gray instead of dark gray */
   font-size: 12px;
 }
 
@@ -631,25 +651,25 @@ body {
 .stat-value {
   font-size: 16px;
   font-weight: 700;
-  color: #333;
+  color: #e5e7eb; /* Light gray instead of dark */
   line-height: 1;
 }
 
 .stat-label {
   font-size: 10px;
-  color: #666;
+  color: #9ca3af; /* Light gray instead of dark gray */
   margin-top: 2px;
 }
 
 .last-session {
-  background: rgba(255, 255, 255, 0.8);
+  background: rgba(55, 65, 81, 0.9); /* Dark background instead of white */
   border-radius: 8px;
   padding: 16px;
-  border: 1px solid rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(156, 163, 175, 0.3); /* Light border */
 }
 
 .last-session h4 {
-  color: #333;
+  color: #e5e7eb; /* Light gray instead of dark */
   margin-bottom: 12px;
   font-size: 14px;
 }
@@ -668,23 +688,23 @@ body {
 }
 
 .session-label {
-  color: #666;
+  color: #9ca3af; /* Light gray instead of dark gray */
 }
 
 .session-value {
-  color: #333;
+  color: #e5e7eb; /* Light gray instead of dark */
   font-weight: 500;
 }
 
 .productivity-insights {
-  background: rgba(255, 255, 255, 0.8);
+  background: rgba(55, 65, 81, 0.9); /* Dark background instead of white */
   border-radius: 8px;
   padding: 16px;
-  border: 1px solid rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(156, 163, 175, 0.3); /* Light border */
 }
 
 .productivity-insights h4 {
-  color: #333;
+  color: #e5e7eb; /* Light gray instead of dark */
   margin-bottom: 12px;
   font-size: 14px;
 }
@@ -707,7 +727,7 @@ body {
 }
 
 .insight-text {
-  color: #666;
+  color: #9ca3af; /* Light gray instead of dark gray */
 }
 
 /* Scrollbar Styles */
@@ -888,13 +908,13 @@ body {
 .model-selection {
   margin-top: 10px;
   padding: 10px;
-  background: rgba(0, 0, 0, 0.02);
+  background: rgba(55, 65, 81, 0.3); /* Dark background instead of light */
   border-radius: 6px;
 }
 
 .model-selection label {
   font-size: 12px;
-  color: #666;
+  color: #9ca3af; /* Light gray instead of dark gray */
   margin-bottom: 5px;
   display: block;
 }
@@ -902,7 +922,9 @@ body {
 .model-select {
   width: 100%;
   padding: 6px 8px;
-  border: 1px solid #e2e8f0;
+  border: 1px solid #4b5563; /* Dark border */
+  background: #374151; /* Dark background */
+  color: #e5e7eb; /* Light text */
   border-radius: 4px;
   font-size: 12px;
 }

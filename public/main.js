@@ -6,6 +6,7 @@ const isDev = process.env.NODE_ENV === 'development' || process.env.ELECTRON_IS_
 const Store = require('electron-store');
 const screenshot = require('screenshot-desktop');
 const fs = require('fs');
+const sharp = require('sharp');
 
 // Native modules for window detection and automation
 let getActiveWindow;
@@ -494,7 +495,8 @@ ipcMain.handle('get-settings', () => {
     lastName: '',
     email: '',
     serverUrl: 'https://api.example.com',
-    screenshotPath: ''
+    screenshotPath: '',
+    enableScreenshotAnalysis: true
   });
 });
 
@@ -521,10 +523,15 @@ ipcMain.handle('get-stats', () => {
   const sessions = store.get('sessions', []);
   const screenshots = store.get('screenshots', []);
   
+  console.log('DEBUG: Stats requested');
+  console.log('DEBUG: Screenshots count:', screenshots.length);
+  console.log('DEBUG: Recent screenshots:', screenshots.slice(-3).map(s => s.filepath || s.path));
+  
   return {
     totalTime: store.get('totalTime', 0),
     sessionsCount: sessions.length,
     screenshotsCount: screenshots.length,
+    totalScreenshots: screenshots.length, // Add this for the test script
     isTracking: store.get('isTracking', false),
     lastSession: sessions[sessions.length - 1] || null
   };
@@ -534,49 +541,70 @@ ipcMain.handle('search-ai', async (event, { query, provider, model }) => {
   const settings = store.get('settings', {});
   
   try {
+    console.log('AI Search started with query:', query);
+    console.log('Provider:', provider, 'Model:', model);
+    
     let response;
+    
+    // Check if screenshot analysis is enabled and get recent screenshots
+    const enableScreenshotAnalysis = settings.enableScreenshotAnalysis !== false; // Default to true
+    console.log('Screenshot analysis enabled:', enableScreenshotAnalysis);
+    
+    const recentScreenshots = enableScreenshotAnalysis ? await getLastScreenshots(3) : [];
+    console.log('Screenshots for analysis:', recentScreenshots.length);
     
     if (provider === 'openai') {
       const apiKey = settings.openAIKey;
       if (!apiKey) throw new Error('OpenAI API key not configured');
       
-      // Make API call to OpenAI
-      const axios = require('axios');
-      response = await axios.post('https://api.openai.com/v1/chat/completions', {
-        model: 'gpt-4o', // Use GPT-4o by default
-        messages: [{ role: 'user', content: query }],
-        max_tokens: 1000
-      }, {
-        headers: {
-          'Authorization': `Bearer ${apiKey}`,
-          'Content-Type': 'application/json'
-        }
-      });
+      if (recentScreenshots.length > 0) {
+        // Use vision analysis with screenshots
+        response = await analyzeScreenshotsWithOpenAI(query, recentScreenshots, apiKey);
+      } else {
+        // Fallback to text-only analysis
+        const axios = require('axios');
+        const textResponse = await axios.post('https://api.openai.com/v1/chat/completions', {
+          model: 'gpt-4o',
+          messages: [{ role: 'user', content: query }],
+          max_tokens: 1000
+        }, {
+          headers: {
+            'Authorization': `Bearer ${apiKey}`,
+            'Content-Type': 'application/json'
+          }
+        });
+        response = textResponse.data.choices[0].message.content;
+      }
       
-      return response.data.choices[0].message.content;
+      return response;
       
     } else if (provider === 'anthropic') {
       const apiKey = settings.anthropicKey;
       if (!apiKey) throw new Error('Anthropic API key not configured');
       
-      // Use the provided model or default to Claude 3.5 Sonnet
       const claudeModel = model || 'claude-3-5-sonnet-20241022';
       
-      // Make API call to Anthropic
-      const axios = require('axios');
-      response = await axios.post('https://api.anthropic.com/v1/messages', {
-        model: claudeModel,
-        max_tokens: 1000,
-        messages: [{ role: 'user', content: query }]
-      }, {
-        headers: {
-          'x-api-key': apiKey,
-          'Content-Type': 'application/json',
-          'anthropic-version': '2023-06-01'
-        }
-      });
+      if (recentScreenshots.length > 0) {
+        // Use vision analysis with screenshots
+        response = await analyzeScreenshotsWithClaude(query, recentScreenshots, apiKey, claudeModel);
+      } else {
+        // Fallback to text-only analysis
+        const axios = require('axios');
+        const textResponse = await axios.post('https://api.anthropic.com/v1/messages', {
+          model: claudeModel,
+          max_tokens: 1000,
+          messages: [{ role: 'user', content: query }]
+        }, {
+          headers: {
+            'x-api-key': apiKey,
+            'Content-Type': 'application/json',
+            'anthropic-version': '2023-06-01'
+          }
+        });
+        response = textResponse.data.content[0].text;
+      }
       
-      return response.data.content[0].text;
+      return response;
     } else {
       throw new Error('Invalid AI provider specified');
     }
@@ -634,6 +662,127 @@ ipcMain.handle('close-window', () => {
     mainWindow.hide();
   }
 });
+
+// Screenshot analysis functions
+async function convertImageToBase64(imagePath) {
+  try {
+    const imageBuffer = await sharp(imagePath)
+      .resize(1024, 768, { fit: 'inside', withoutEnlargement: true })
+      .jpeg({ quality: 80 })
+      .toBuffer();
+    return imageBuffer.toString('base64');
+  } catch (error) {
+    console.error('Error converting image to base64:', error);
+    throw error;
+  }
+}
+
+async function getLastScreenshots(count = 3) {
+  const screenshots = store.get('screenshots', []);
+  console.log('Total screenshots in store:', screenshots.length);
+  
+  const recentScreenshots = screenshots
+    .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
+    .slice(0, count);
+    
+  console.log('Recent screenshots before filtering:', recentScreenshots.length);
+  
+  const existingScreenshots = recentScreenshots.filter(screenshot => {
+    // Use filepath instead of path
+    const path = screenshot.filepath || screenshot.path;
+    const exists = path && fs.existsSync(path);
+    console.log(`Screenshot ${path} exists: ${exists}`);
+    return exists;
+  });
+  
+  console.log('Existing screenshots for analysis:', existingScreenshots.length);
+  return existingScreenshots;
+}
+
+async function analyzeScreenshotsWithOpenAI(query, screenshots, apiKey) {
+  const axios = require('axios');
+  
+  const imageMessages = await Promise.all(
+    screenshots.map(async (screenshot) => {
+      const imagePath = screenshot.filepath || screenshot.path;
+      const base64Image = await convertImageToBase64(imagePath);
+      return {
+        type: "image_url",
+        image_url: {
+          url: `data:image/jpeg;base64,${base64Image}`,
+          detail: "high"
+        }
+      };
+    })
+  );
+
+  const messages = [
+    {
+      role: "user",
+      content: [
+        {
+          type: "text",
+          text: `I'm asking: "${query}"\n\nBased on these ${screenshots.length} recent screenshots from my work session, please provide a helpful response. Analyze what I was working on, what applications I was using, and provide relevant context for my question. If you can see specific text, code, or content in the screenshots, reference it in your response.`
+        },
+        ...imageMessages
+      ]
+    }
+  ];
+
+  const response = await axios.post('https://api.openai.com/v1/chat/completions', {
+    model: 'gpt-4o',
+    messages: messages,
+    max_tokens: 1500
+  }, {
+    headers: {
+      'Authorization': `Bearer ${apiKey}`,
+      'Content-Type': 'application/json'
+    }
+  });
+
+  return response.data.choices[0].message.content;
+}
+
+async function analyzeScreenshotsWithClaude(query, screenshots, apiKey, model) {
+  const axios = require('axios');
+  
+  const imageMessages = await Promise.all(
+    screenshots.map(async (screenshot) => {
+      const imagePath = screenshot.filepath || screenshot.path;
+      const base64Image = await convertImageToBase64(imagePath);
+      return {
+        type: "image",
+        source: {
+          type: "base64",
+          media_type: "image/jpeg",
+          data: base64Image
+        }
+      };
+    })
+  );
+
+  const content = [
+    {
+      type: "text",
+      text: `I'm asking: "${query}"\n\nBased on these ${screenshots.length} recent screenshots from my work session, please provide a helpful response. Analyze what I was working on, what applications I was using, and provide relevant context for my question. If you can see specific text, code, or content in the screenshots, reference it in your response.`
+    },
+    ...imageMessages
+  ];
+
+  const response = await axios.post('https://api.anthropic.com/v1/messages', {
+    model: model || 'claude-3-5-sonnet-20241022',
+    max_tokens: 1500,
+    messages: [{ role: 'user', content: content }]
+  }, {
+    headers: {
+      'x-api-key': apiKey,
+      'Content-Type': 'application/json',
+      'anthropic-version': '2023-06-01'
+    }
+  });
+
+  return response.data.content[0].text;
+}
 
 // App event handlers
 app.whenReady().then(() => {
