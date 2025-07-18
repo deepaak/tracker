@@ -181,7 +181,7 @@ const Settings = () => {
                 📁 Browse
               </button>
             </div>
-            <small>Choose where screenshots will be saved. Default: Documents/TimeTracker/Screenshots</small>
+            <small>Choose where screenshots will be saved. Default: Documents/ModinsightGlass/Screenshots</small>
           </div>
 
           <div className="form-group">

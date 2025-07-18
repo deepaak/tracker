@@ -11,7 +11,7 @@ const Header = ({ currentView, onViewChange, onMinimize, onClose, onCollapse }) 
   return (
     <div className="header">
       <div className="header-drag-area">
-        <div className="app-title">Time Tracker</div>
+        <div className="app-title">Modinsight Glass</div>
       </div>
       
       <div className="header-controls">

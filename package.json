@@ -1,7 +1,7 @@
 {
-  "name": "timetracker-desktop",
+  "name": "modinsight-glass",
   "version": "1.0.0",
-  "description": "Desktop time tracking application similar to TimeDoctor",
+  "description": "Modinsight Glass - Desktop time tracking application with AI analysis",
   "main": "public/main.js",
   "homepage": "./",
   "scripts": {
@@ -23,8 +23,8 @@
   "author": "Your Name",
   "license": "MIT",
   "build": {
-    "appId": "com.yourcompany.timetracker",
-    "productName": "Time Tracker",
+    "appId": "com.modinsight.glass",
+    "productName": "Modinsight Glass",
     "directories": {
       "output": "dist"
     },

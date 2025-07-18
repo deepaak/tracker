@@ -65,8 +65,8 @@ async function checkWindowDetectionPermissions() {
           console.warn('   - Look for "Electron" in the Accessibility list');
           console.warn('   - Or add the Electron app from: /Applications/Electron.app');
         } else {
-          console.warn('📦 PRODUCTION MODE: Add "Time Tracker" to accessibility permissions');
-          console.warn('   - Look for "Time Tracker" in the Accessibility list');
+          console.warn('📦 PRODUCTION MODE: Add "Modinsight Glass" to accessibility permissions');
+          console.warn('   - Look for "Modinsight Glass" in the Accessibility list');
         }
         console.warn('');
         console.warn('Steps:');
@@ -139,6 +139,7 @@ function createWindow() {
     minimizable: false, // Remove minimize option
     show: false, // Don't show until ready
     movable: true, // Allow dragging
+    icon: path.join(__dirname, 'assets', 'icon.png'), // Custom app icon - using icon.png for better compatibility
     webPreferences: {
       nodeIntegration: true,
       contextIsolation: false,
@@ -208,8 +209,8 @@ async function takeScreenshot() {
     if (settings.screenshotPath && fs.existsSync(settings.screenshotPath)) {
       screenshotsDir = settings.screenshotPath;
     } else {
-      // Default path: Documents/TimeTracker/Screenshots
-      screenshotsDir = path.join(os.homedir(), 'Documents', 'TimeTracker', 'Screenshots');
+      // Default path: Documents/ModinsightGlass/Screenshots
+      screenshotsDir = path.join(os.homedir(), 'Documents', 'ModinsightGlass', 'Screenshots');
     }
     
     const filepath = path.join(screenshotsDir, filename);
@@ -544,13 +545,29 @@ ipcMain.handle('search-ai', async (event, { query, provider, model }) => {
     console.log('AI Search started with query:', query);
     console.log('Provider:', provider, 'Model:', model);
     
+    // Take a fresh screenshot for current context before analysis
+    console.log('Taking fresh screenshot for AI analysis...');
+    const freshScreenshot = await takeScreenshot();
+    
     let response;
     
     // Check if screenshot analysis is enabled and get recent screenshots
     const enableScreenshotAnalysis = settings.enableScreenshotAnalysis !== false; // Default to true
     console.log('Screenshot analysis enabled:', enableScreenshotAnalysis);
     
-    const recentScreenshots = enableScreenshotAnalysis ? await getLastScreenshots(3) : [];
+    let recentScreenshots = [];
+    if (enableScreenshotAnalysis) {
+      // Get the fresh screenshot and combine with recent ones
+      recentScreenshots = await getLastScreenshots(1);
+      
+      // If we successfully took a fresh screenshot, prioritize it
+      if (freshScreenshot && freshScreenshot.filepath && fs.existsSync(freshScreenshot.filepath)) {
+        // Remove the fresh screenshot from recent list if it's there and add it at the beginning
+        recentScreenshots = recentScreenshots.filter(s => s.filepath !== freshScreenshot.filepath);
+        recentScreenshots.unshift(freshScreenshot);
+      }
+    }
+    
     console.log('Screenshots for analysis:', recentScreenshots.length);
     
     if (provider === 'openai') {
@@ -582,7 +599,12 @@ ipcMain.handle('search-ai', async (event, { query, provider, model }) => {
       const apiKey = settings.anthropicKey;
       if (!apiKey) throw new Error('Anthropic API key not configured');
       
-      const claudeModel = model || 'claude-3-5-sonnet-20241022';
+      // Map invalid model names to valid ones
+      let claudeModel = model || 'claude-3-5-sonnet-20241022';
+      if (model === 'claude-4-0' || model === 'claude-4') {
+        claudeModel = 'claude-3-5-sonnet-20241022'; // Use latest Claude 3.5 Sonnet as fallback
+        console.log('Invalid Claude model specified, using claude-3-5-sonnet-20241022 instead');
+      }
       
       if (recentScreenshots.length > 0) {
         // Use vision analysis with screenshots
@@ -677,7 +699,7 @@ async function convertImageToBase64(imagePath) {
   }
 }
 
-async function getLastScreenshots(count = 3) {
+async function getLastScreenshots(count = 1) {
   const screenshots = store.get('screenshots', []);
   console.log('Total screenshots in store:', screenshots.length);
   
@@ -722,7 +744,7 @@ async function analyzeScreenshotsWithOpenAI(query, screenshots, apiKey) {
       content: [
         {
           type: "text",
-          text: `I'm asking: "${query}"\n\nBased on these ${screenshots.length} recent screenshots from my work session, please provide a helpful response. Analyze what I was working on, what applications I was using, and provide relevant context for my question. If you can see specific text, code, or content in the screenshots, reference it in your response.`
+          text: `I'm asking: "${query}"\n\nBased on this current screenshot from my work session, please provide a helpful response. Analyze what I'm currently working on, what applications I'm using, and provide relevant context for my question. If you can see specific text, code, or content in the screenshot, reference it in your response.`
         },
         ...imageMessages
       ]
@@ -764,7 +786,7 @@ async function analyzeScreenshotsWithClaude(query, screenshots, apiKey, model) {
   const content = [
     {
       type: "text",
-      text: `I'm asking: "${query}"\n\nBased on these ${screenshots.length} recent screenshots from my work session, please provide a helpful response. Analyze what I was working on, what applications I was using, and provide relevant context for my question. If you can see specific text, code, or content in the screenshots, reference it in your response.`
+      text: `I'm asking: "${query}"\n\nBased on this current screenshot from my work session, please provide a helpful response. Analyze what I'm currently working on, what applications I'm using, and provide relevant context for my question. If you can see specific text, code, or content in the screenshot, reference it in your response.`
     },
     ...imageMessages
   ];
